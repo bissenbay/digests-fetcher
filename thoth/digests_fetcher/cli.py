@@ -76,7 +76,7 @@ def cli(ctx=None, verbose=False):
     type=str,
     required=True,
     envvar="THOTH_DIGESTS_FETCHER_PACKAGE_NAME",
-    help="Package name for which digests should be fetcher.",
+    help="Package name for which digests should be fetched.",
 )
 @click.option(
     "--package-version",
@@ -84,7 +84,7 @@ def cli(ctx=None, verbose=False):
     type=str,
     required=True,
     envvar="THOTH_DIGESTS_FETCHER_PACKAGE_VERSION",
-    help="Package name for which digests should be fetcher.",
+    help="Package version for which digests should be fetched.",
 )
 @click.option(
     "--index-url",
@@ -97,6 +97,14 @@ def cli(ctx=None, verbose=False):
     help="A comma separated list of Python package indexes (package sources) to gather digests from.",
 )
 @click.option("--no-pretty", "-P", is_flag=True, help="Do not print results nicely.")
+@click.option(
+    "--output",
+    "-o",
+    type=str,
+    envvar="THOTH_ANALYZER_OUTPUT",
+    default=None,
+    help="Output file or remote API to print results to, in case of URL a POST request is issued.",
+)
 def python(
     click_ctx,
     package_name: str,
@@ -116,7 +124,7 @@ def python(
         result,
         analyzer=analyzer_name,
         analyzer_version=analyzer_version,
-        output=output,
+        output=output or "-",
         pretty=not no_pretty,
     )
 

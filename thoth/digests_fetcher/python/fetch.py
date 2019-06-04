@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # thoth-digests-fetcher
-# Copyright(C) 2019 ???
+# Copyright(C) 2019 Fridolin Pokorny
 #
 # This program is free software: you can redistribute it and / or modify
 # it under the terms of the GNU General Public License as published by
@@ -38,13 +38,14 @@ class PythonDigestsFetcher(FetcherBase):
             "Fetching digests for package %r in version %r from %r",
             package_name,
             package_version,
-            self.source.url,
+            self.source.url
         )
 
-        # TODO: implement
+        files = self.source.get_package_hashes(package_name, package_version, True)
+
         return {
             "package_name": package_name,
             "package_version": package_version,
-            "index_url": self.source.index.url,
-            "files": [],
+            "index_url": self.source.url,
+            "files": files
         }
