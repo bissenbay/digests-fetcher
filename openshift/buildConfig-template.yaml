@@ -17,6 +17,25 @@ metadata:
     app: thoth
     component: package-analyzer
 
+parameters:
+  - description: Name of the github repository
+    displayName: Git Repository
+    required: true
+    name: GITHUB_URL
+    value: 'https://github.com/bissenbay/digests-fetcher'
+
+  - description: Git reference to be used
+    displayName: Git Reference
+    required: true
+    name: GITHUB_REF
+    value: 'features/fetcher'
+
+  - description: Tag of the output ImageStream the resulting container image should go to
+    displayName: ImageStream Tag
+    required: true
+    name: IMAGE_STREAM_TAG
+    value: 'latest'
+
 objects:
   - kind: BuildConfig
     apiVersion: v1
@@ -60,22 +79,3 @@ objects:
           generic:
             secretReference:
               name: generic-webhook-secret
-
-parameters:
-  - description: Name of the github repository
-    displayName: Git Repository
-    required: true
-    name: GITHUB_URL
-    value: 'https://github.com/thoth-station/digests-fetcher'
-
-  - description: Git reference to be used
-    displayName: Git Reference
-    required: true
-    name: GITHUB_REF
-    value: 'master'
-
-  - description: Tag of the output ImageStream the resulting container image should go to
-    displayName: ImageStream Tag
-    required: true
-    name: IMAGE_STREAM_TAG
-    value: 'latest'

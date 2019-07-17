@@ -17,92 +17,6 @@ metadata:
     app: thoth
     component: package-analyzer
 
-objects:
-  - apiVersion: batch/v1
-    kind: Job
-    metadata:
-      name: package-analyzer
-      labels:
-        app: thoth
-        component: package-analyzer
-        operator: graph-sync
-        task: package-analyzer
-        mark: cleanup
-    spec:
-      backoffLimit: 0
-      template:
-        metadata:
-          labels:
-            app: thoth
-            component: package-analyzer
-        spec:
-          restartPolicy: Never
-          automountServiceAccountToken: false
-          containers:
-            - name: package-analyzer
-              image: "${THOTH_REGISTRY}/${IMAGE_STREAM_PROJECT_NAME}/package-analyzer"
-              livenessProbe:
-                # Give package analyzer 30 minutes to compute results, kill it if it was not able result anything.
-                # TO BE REVIEWED
-                tcpSocket:
-                  port: 80
-                initialDelaySeconds: 1800
-                failureThreshold: 1
-                periodSeconds: 10
-              env:
-                - name: THOTH_DEPLOYMENT_NAME
-                  valueFrom:
-                    configMapKeyRef:
-                      key: storage-bucket-name
-                      name: thoth
-                - name: THOTH_S3_ENDPOINT_URL
-                  valueFrom:
-                    configMapKeyRef:
-                      key: ceph-host
-                      name: thoth
-                - name: THOTH_CEPH_BUCKET
-                  valueFrom:
-                    configMapKeyRef:
-                      key: ceph-bucket-name
-                      name: thoth
-                - name: THOTH_CEPH_BUCKET_PREFIX
-                  valueFrom:
-                    configMapKeyRef:
-                      key: ceph-bucket-prefix
-                      name: thoth
-                - name: THOTH_CEPH_KEY_ID
-                  valueFrom:
-                    secretKeyRef:
-                      name: thoth
-                      key: ceph-key-id
-                - name: THOTH_CEPH_SECRET_KEY
-                  valueFrom:
-                    secretKeyRef:
-                      key: ceph-secret-key
-                      name: thoth
-                - name: THOTH_PACKAGE_ANALYZER_SUBCOMMAND
-                  value: "python"
-                - name: THOTH_DIGESTS_FETCHER_DEBUG
-                  value: "${THOTH_DIGESTS_FETCHER_DEBUG}"
-                - name: THOTH_DIGESTS_FETCHER_PACKAGE_NAME
-                  value: "${THOTH_DIGESTS_FETCHER_PACKAGE_NAME}"
-                - name: THOTH_DIGESTS_FETCHER_PACKAGE_VERSION
-                  value: "${THOTH_DIGESTS_FETCHER_PACKAGE_VERSION}"
-                - name: THOTH_DIGESTS_FETCHER_INDEX_URL
-                  value: "${THOTH_DIGESTS_FETCHER_INDEX_URL}"
-                - name: THOTH_ANALYZER_OUTPUT
-                  valueFrom:
-                    configMapKeyRef:
-                      key: package-analysis-result
-                      name: thoth
-              resources:
-                limits:
-                  memory: '2Gi'
-                  cpu: '1000m'
-                requests:
-                  memory: '2Gi'
-                  cpu: '1000m'
-
 parameters:
   - name: THOTH_PACKAGE_ANALYZER_JOB_ID
     description: A job id for package analyzer job.
@@ -137,8 +51,65 @@ parameters:
     description: Project where ImageStream is present
     displayName: ImageStream Project
     required: true
-    value: 'thoth-infra-stage'
+    value: 'thoth-test-core'
   - name: THOTH_ANALYZER_OUTPUT
     description: Remote where results should be send to
     displayName: Analyzer output
     required: true
+
+objects:
+  - apiVersion: batch/v1
+    kind: Job
+    metadata:
+      name: "${THOTH_PACKAGE_ANALYZER_JOB_ID}"
+      labels:
+        app: thoth
+        component: package-analyzer
+        operator: graph-sync
+        task: package-analyzer
+        mark: cleanup
+    spec:
+      backoffLimit: 0
+      template:
+        metadata:
+          labels:
+            app: thoth
+            component: package-analyzer
+        spec:
+          restartPolicy: Never
+          automountServiceAccountToken: false
+          containers:
+            - name: package-analyzer
+              image: "${THOTH_REGISTRY}/${IMAGE_STREAM_PROJECT_NAME}/package-analyzer"
+              livenessProbe:
+                # Give package analyzer 30 minutes to compute results, kill it if it was not able result anything.
+                tcpSocket:
+                  port: 80
+                initialDelaySeconds: 1800
+                failureThreshold: 1
+                periodSeconds: 10
+              env:
+                - name: THOTH_PACKAGE_ANALYZER_SUBCOMMAND
+                  value: "python"
+                - name: THOTH_DIGESTS_FETCHER_DEBUG
+                  value: "${THOTH_DIGESTS_FETCHER_DEBUG}"
+                - name: THOTH_DIGESTS_FETCHER_PACKAGE_NAME
+                  value: "${THOTH_DIGESTS_FETCHER_PACKAGE_NAME}"
+                - name: THOTH_DIGESTS_FETCHER_PACKAGE_VERSION
+                  value: "${THOTH_DIGESTS_FETCHER_PACKAGE_VERSION}"
+                - name: THOTH_DIGESTS_FETCHER_INDEX_URL
+                  value: "${THOTH_DIGESTS_FETCHER_INDEX_URL}"
+                - name: THOTH_ANALYZER_OUTPUT
+                  value: "${THOTH_ANALYZER_OUTPUT}"
+                - name: SENTRY_DSN
+                  valueFrom:
+                    secretKeyRef:
+                      name: thoth
+                      key: sentry-dsn
+              resources:
+                limits:
+                  memory: '1Gi'
+                  cpu: '1000m'
+                requests:
+                  memory: '1Gi'
+                  cpu: '1000m'
